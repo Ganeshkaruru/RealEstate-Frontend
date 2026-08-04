@@ -1,0 +1,273 @@
+.add-property-page{
+    min-height:100vh;
+    padding:40px 20px;
+    background:#f4f6f9;
+    display:flex;
+    justify-content:center;
+}
+
+.add-property-card{
+    width:100%;
+    max-width:850px;
+    background:#fff;
+    border-radius:18px;
+    padding:35px;
+    box-shadow:0 10px 30px rgba(0,0,0,.08);
+}
+
+.add-property-card h1{
+    text-align:center;
+    font-size:32px;
+    color:#2563eb;
+    margin-bottom:10px;
+}
+
+.add-property-card p{
+    text-align:center;
+    color:#6b7280;
+    margin-bottom:30px;
+}
+
+.form-group{
+    display:flex;
+    flex-direction:column;
+    margin-bottom:18px;
+}
+
+.form-group label{
+    margin-bottom:8px;
+    font-weight:600;
+    color:#374151;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select{
+    padding:13px 14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    font-size:16px;
+    outline:none;
+    transition:.3s;
+    resize:none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.12);
+}
+
+.form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.error-box{
+    background:#fee2e2;
+    color:#991b1b;
+    padding:12px 14px;
+    border-radius:10px;
+    margin-bottom:20px;
+    font-weight:600;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:#fff;
+    font-size:17px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+button:disabled{
+    opacity:.7;
+    cursor:not-allowed;
+}
+
+@media (max-width:768px){
+    .add-property-card{
+        padding:25px;
+    }
+
+    .form-row{
+        grid-template-columns:1fr;
+        gap:0;
+    }
+
+    .add-property-card h1{
+        font-size:28px;
+    }
+}
+
+@media (max-width:480px){
+    .add-property-page{
+        padding:15px;
+    }
+
+    .add-property-card{
+        padding:20px;
+    }
+
+    .add-property-card h1{
+        font-size:24px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select{
+        font-size:15px;
+        padding:12px;
+    }
+}/* ===========================
+   Upload Section
+=========================== */
+
+.upload-section{
+    margin-top:25px;
+}
+
+.upload-section label{
+    display:block;
+    font-size:16px;
+    font-weight:600;
+    color:#374151;
+    margin-bottom:10px;
+}
+
+.upload-box{
+    border:2px dashed #2563eb;
+    border-radius:12px;
+    padding:30px;
+    text-align:center;
+    background:#f8fbff;
+    transition:0.3s;
+}
+
+.upload-box:hover{
+    background:#eef5ff;
+}
+
+.upload-box input[type="file"]{
+    width:100%;
+    cursor:pointer;
+    font-size:15px;
+}
+
+.upload-text{
+    margin-top:10px;
+    color:#6b7280;
+    font-size:15px;
+}
+
+/* ===========================
+   Preview Grid
+=========================== */
+
+.preview-grid{
+    margin-top:25px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:18px;
+}
+
+/* ===========================
+   Preview Card
+=========================== */
+
+.preview-card{
+    position:relative;
+    border-radius:12px;
+    overflow:hidden;
+    background:#fff;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+}
+
+.preview-card img,
+.preview-card video{
+    width:100%;
+    height:180px;
+    object-fit:cover;
+    display:block;
+}
+
+/* ===========================
+   Remove Button
+=========================== */
+
+.remove-btn{
+    position:absolute;
+    top:8px;
+    right:8px;
+    width:30px;
+    height:30px;
+    border:none;
+    border-radius:50%;
+    background:#ef4444;
+    color:#fff;
+    font-size:16px;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    transition:.3s;
+}
+
+.remove-btn:hover{
+    background:#dc2626;
+}
+
+/* ===========================
+   File Name
+=========================== */
+
+.file-name{
+    padding:10px;
+    text-align:center;
+    font-size:14px;
+    color:#374151;
+    word-break:break-word;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media(max-width:768px){
+
+    .preview-grid{
+        grid-template-columns:repeat(auto-fill,minmax(150px,1fr));
+    }
+
+    .preview-card img,
+    .preview-card video{
+        height:150px;
+    }
+}
+
+@media(max-width:480px){
+
+    .upload-box{
+        padding:20px;
+    }
+
+    .preview-grid{
+        grid-template-columns:1fr;
+    }
+
+    .preview-card img,
+    .preview-card video{
+        height:220px;
+    }
+}
