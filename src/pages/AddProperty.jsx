@@ -1,299 +1,204 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import {
-    addProperty,
-    uploadMedia
-} from "../services/propertyService";
+import Footer from "../components/Footer";
+import ImageUploader from "../components/ImageUploader";
+import { addProperty, uploadMedia } from "../services/propertyService";
+import { useToast } from "../components/Toast";
 import "../css/addProperty.css";
 
-function AddProperty() {
+const AddProperty = () => {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
 
-    const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    location: "",
+    price: "",
+    bedrooms: "2",
+    propertyType: "Apartment",
+    status: "Available",
+  });
 
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        location: "",
-        price: "",
-        propertyType: "",
-        status: "",
-        bedrooms: ""
-    });
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
-    const [files, setFiles] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+  const handleFilesSelected = (newFiles) => {
+    setSelectedFiles((prev) => [...prev, ...newFiles]);
+  };
 
-    const handleChange = (e) => {
+  const handleRemoveFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
-        const { name, value } = e.target;
-
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-
-    };
-
-    const handleFileChange = (e) => {
-
-        setFiles(Array.from(e.target.files));
-
-    };
-
-    const handleSubmit = async (e) => {
-
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    setLoading(true);
-    setError("");
-
-    try {
-
-        const payload = {
-            ...formData,
-            price: Number(formData.price),
-            bedrooms: Number(formData.bedrooms)
-        };
-
-        const property = await addProperty(payload);
-
-        console.log("PROPERTY =", property);
-
-        if (!property || !property.id) {
-            throw new Error("Property ID not returned");
-        }
-
-        for (const file of files) {
-
-            console.log("Uploading:", file.name);
-
-            await uploadMedia(property.id, file);
-
-        }
-
-        alert("Property Added Successfully");
-
-        navigate("/home");
-
-    } catch (err) {
-
-        console.log(err);
-
-        console.log("Status:", err.response?.status);
-        console.log("Data:", err.response?.data);
-
-        setError("Failed to add property");
-
-    } finally {
-
-        setLoading(false);
-
+    if (!formData.title || !formData.price || !formData.location) {
+      showToast("Please fill in required fields (Title, Location, Price)", "error");
+      return;
     }
 
-};
+    setSubmitting(true);
+    try {
+      // 1. Save property basic info
+      const createdProp = await addProperty({
+        title: formData.title,
+        description: formData.description,
+        location: formData.location,
+        price: parseFloat(formData.price),
+        bedrooms: parseInt(formData.bedrooms, 10),
+        propertyType: formData.propertyType,
+        status: formData.status,
+      });
 
-    return (
-        <>
-            <Navbar />
+      // 2. Upload media images if any selected
+      if (selectedFiles.length > 0 && createdProp.id) {
+        for (const file of selectedFiles) {
+          try {
+            await uploadMedia(createdProp.id, file);
+          } catch (mErr) {
+            console.error("Failed to upload image:", mErr);
+          }
+        }
+      }
 
-            <div className="add-property-page">
+      showToast("Property created and published successfully!", "success");
+      navigate("/my-properties");
+    } catch (err) {
+      console.error("Error adding property:", err);
+      const msg = err.response?.data?.message || "Failed to create property";
+      showToast(msg, "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-                <div className="add-property-card">
+  return (
+    <div className="page-container">
+      <Navbar />
 
-                    <h1>Add Property</h1>
+      <main className="form-page-container">
+        <div className="form-header">
+          <h1 className="form-header-title">List a New Luxury Property</h1>
+          <p className="form-header-subtitle">
+            Provide property details and upload high quality photos to showcase to buyers.
+          </p>
+        </div>
 
-                    <p>Create a new property listing</p>
+        <form className="form-card" onSubmit={handleSubmit}>
+          {/* Image Upload Section */}
+          <div className="form-field">
+            <label className="field-label">Property Photos</label>
+            <ImageUploader
+              selectedFiles={selectedFiles}
+              onFilesSelected={handleFilesSelected}
+              onRemoveFile={handleRemoveFile}
+            />
+          </div>
 
-                    {error && <div className="error-box">{error}</div>}
+          <div className="form-field">
+            <label className="field-label">Property Title *</label>
+            <input
+              type="text"
+              className="field-input"
+              placeholder="e.g. Modern Ocean View Villa in Bandra"
+              value={formData.title}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              required
+            />
+          </div>
 
-                    <form onSubmit={handleSubmit}>
-
-                        <div className="form-group">
-
-                            <label>Title</label>
-
-                            <input
-                                type="text"
-                                name="title"
-                                value={formData.title}
-                                onChange={handleChange}
-                                required
-                            />
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>Description</label>
-
-                            <textarea
-                                name="description"
-                                value={formData.description}
-                                onChange={handleChange}
-                                rows="5"
-                                required
-                            />
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>Images / Videos</label>
-
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*,video/*"
-                                onChange={handleFileChange}
-                            />
-
-                        </div>
-
-                        <div className="preview-grid">
-
-                            {files.map((file, index) => (
-
-                                <div
-                                    className="preview-card"
-                                    key={index}
-                                >
-
-                                    {file.type.startsWith("image") ? (
-
-                                        <img
-                                            src={URL.createObjectURL(file)}
-                                            alt={file.name}
-                                        />
-
-                                    ) : (
-
-                                        <video controls>
-
-                                            <source
-                                                src={URL.createObjectURL(file)}
-                                                type={file.type}
-                                            />
-
-                                        </video>
-
-                                    )}
-
-                                    <div className="file-name">
-                                        {file.name}
-                                    </div>
-
-                                </div>
-
-                            ))}
-
-                        </div>
-
-                        <div className="form-group">
-
-                            <label>Location</label>
-
-                            <input
-                                type="text"
-                                name="location"
-                                value={formData.location}
-                                onChange={handleChange}
-                                required
-                            />
-
-                        </div>
-
-                        <div className="form-row">
-
-                            <div className="form-group">
-
-                                <label>Price</label>
-
-                                <input
-                                    type="number"
-                                    name="price"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                    required
-                                />
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>Bedrooms</label>
-
-                                <input
-                                    type="number"
-                                    name="bedrooms"
-                                    value={formData.bedrooms}
-                                    onChange={handleChange}
-                                    required
-                                />
-
-                            </div>
-
-                        </div>
-
-                        <div className="form-row">
-
-                            <div className="form-group">
-
-                                <label>Property Type</label>
-
-                                <select
-                                    name="propertyType"
-                                    value={formData.propertyType}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select Type</option>
-                                    <option value="APARTMENT">Apartment</option>
-                                    <option value="HOUSE">House</option>
-                                    <option value="VILLA">Villa</option>
-                                    <option value="PLOT">Plot</option>
-                                    <option value="COMMERCIAL">Commercial</option>
-                                </select>
-
-                            </div>
-
-                            <div className="form-group">
-
-                                <label>Status</label>
-
-                                <select
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    required
-                                >
-                                    <option value="">Select Status</option>
-                                    <option value="AVAILABLE">Available</option>
-                                    <option value="SOLD">Sold</option>
-                                    <option value="PENDING">Pending</option>
-                                </select>
-
-                            </div>
-
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                        >
-                            {loading ? "Adding..." : "Add Property"}
-                        </button>
-
-                    </form>
-
-                </div>
-
+          <div className="form-grid-2">
+            <div className="form-field">
+              <label className="field-label">Location / Address *</label>
+              <input
+                type="text"
+                className="field-input"
+                placeholder="e.g. Bandra West, Mumbai"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                required
+              />
             </div>
 
-        </>
-    );
+            <div className="form-field">
+              <label className="field-label">Price (₹) *</label>
+              <input
+                type="number"
+                className="field-input"
+                placeholder="e.g. 15000000"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                required
+              />
+            </div>
+          </div>
 
-}
+          <div className="form-grid-2">
+            <div className="form-field">
+              <label className="field-label">Property Type</label>
+              <select
+                className="field-select"
+                value={formData.propertyType}
+                onChange={(e) => setFormData({ ...formData, propertyType: e.target.value })}
+              >
+                <option value="Apartment">Apartment</option>
+                <option value="House">House</option>
+                <option value="Villa">Villa</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Land">Land</option>
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label className="field-label">Status</label>
+              <select
+                className="field-select"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              >
+                <option value="Available">Available</option>
+                <option value="Pending">Pending</option>
+                <option value="Sold">Sold</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Bedrooms</label>
+            <select
+              className="field-select"
+              value={formData.bedrooms}
+              onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
+            >
+              <option value="1">1 BHK</option>
+              <option value="2">2 BHK</option>
+              <option value="3">3 BHK</option>
+              <option value="4">4 BHK</option>
+              <option value="5">5+ BHK</option>
+            </select>
+          </div>
+
+          <div className="form-field">
+            <label className="field-label">Description</label>
+            <textarea
+              className="field-textarea"
+              placeholder="Describe key features, furnishing, balcony view, proximity to schools/airports..."
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+          <button type="submit" className="submit-btn-large" disabled={submitting}>
+            {submitting ? "Publishing Property..." : "Submit & Publish Listing"}
+          </button>
+        </form>
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
 
 export default AddProperty;

@@ -1,110 +1,75 @@
-import axios from "axios";
+import api from "./api";
 
-const BASE_URL = "http://localhost:8081";
-
-const getAuthHeader = () => ({
-    headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-    }
-});
-
-// ==========================
-// Get All Properties
-// ==========================
-export const getProperties = async (page = 0, size = 6) => {
-
-    const response = await axios.get(
-        `${BASE_URL}/properties?page=${page}&size=${size}`,
-        getAuthHeader()
-    );
-
-    return response.data;
+// Get All Properties (Paginated)
+export const getProperties = async (page = 0, size = 12) => {
+  const response = await api.get(`/properties?page=${page}&size=${size}`);
+  return response.data;
 };
 
-// ==========================
-// Get My Properties
-// ==========================
+// Search & Filter Properties
+export const searchProperties = async (filters = {}) => {
+  const params = new URLSearchParams();
+  if (filters.location) params.append("location", filters.location);
+  if (filters.propertyType) params.append("propertyType", filters.propertyType);
+  if (filters.minPrice) params.append("minPrice", filters.minPrice);
+  if (filters.maxPrice) params.append("maxPrice", filters.maxPrice);
+  if (filters.bedrooms) params.append("bedrooms", filters.bedrooms);
+
+  const response = await api.get(`/properties/search?${params.toString()}`);
+  return response.data;
+};
+
+// Get My Properties (Seller)
 export const getMyProperties = async () => {
-
-    const response = await axios.get(
-        `${BASE_URL}/properties/my`,
-        getAuthHeader()
-    );
-
-    return response.data;
+  const response = await api.get("/properties/my");
+  return response.data;
 };
 
-// ==========================
-// Get Property By Id
-// ==========================
+// Get Single Property By ID
 export const getPropertyById = async (id) => {
-
-    const response = await axios.get(
-        `${BASE_URL}/properties/${id}`,
-        getAuthHeader()
-    );
-
-    return response.data;
+  const response = await api.get(`/properties/${id}`);
+  return response.data;
 };
 
-// ==========================
-// Add Property
-// ==========================
+// Get Detailed Property Info (Includes media list & seller info)
+export const getPropertyDetails = async (id) => {
+  const response = await api.get(`/properties/${id}/details`);
+  return response.data;
+};
+
+// Add New Property
 export const addProperty = async (propertyData) => {
-
-    const response = await axios.post(
-        `${BASE_URL}/properties`,
-        propertyData,
-        getAuthHeader()
-    );
-
-    return response.data;
+  const response = await api.post("/properties", propertyData);
+  return response.data;
 };
 
-// ==========================
-// Upload Media
-// ==========================
+// Upload Media for Property
 export const uploadMedia = async (propertyId, file) => {
+  const formData = new FormData();
+  formData.append("file", file);
 
-    const formData = new FormData();
-
-    formData.append("file", file);
-
-    const response = await axios.post(
-        `${BASE_URL}/properties/${propertyId}/media`,
-        formData,
-        {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-                "Content-Type": "multipart/form-data"
-            }
-        }
-    );
-
-    return response.data;
+  const response = await api.post(`/properties/${propertyId}/media`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
 };
 
-// ==========================
-// Update Property
-// ==========================
+// Get Media List for Property
+export const getPropertyMedia = async (propertyId) => {
+  const response = await api.get(`/properties/${propertyId}/media`);
+  return response.data;
+};
+
+// Update Property Details
 export const updateProperty = async (id, propertyData) => {
-
-    const response = await axios.put(
-        `${BASE_URL}/properties/${id}`,
-        propertyData,
-        getAuthHeader()
-    );
-
-    return response.data;
+  const response = await api.put(`/properties/${id}`, propertyData);
+  return response.data;
 };
 
-// ==========================
 // Delete Property
-// ==========================
 export const deleteProperty = async (id) => {
-
-    await axios.delete(
-        `${BASE_URL}/properties/${id}`,
-        getAuthHeader()
-    );
+  const response = await api.delete(`/properties/${id}`);
+  return response.data;
 };

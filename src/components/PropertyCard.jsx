@@ -1,123 +1,93 @@
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { FaPen, FaTrash } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaMapMarkerAlt, FaBed, FaPen, FaTrashAlt, FaBath, FaRulerCombined } from "react-icons/fa";
+import StatusBadge from "./StatusBadge";
+import PropertyTypeBadge from "./PropertyTypeBadge";
+import { getImageUrl } from "../services/api";
 import "../css/propertyCard.css";
 
-function PropertyCard({
-    property,
-    showActions = false,
-    onDelete
-}) {
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80";
 
-    const navigate = useNavigate();
+const PropertyCard = ({ property, showActions = false, onDelete }) => {
+  const navigate = useNavigate();
 
-    console.log("PROPERTY =", property);
-console.log("MEDIA =", property.media);
+  const handleCardClick = () => {
+    navigate(`/property/${property.id}`);
+  };
 
-const image =
-    property.media &&
-    property.media.length > 0
-        ? `http://localhost:8081/${property.media[0].mediaUrl}`
-        : null;
+  const imageSrc =
+    property.media && property.media.length > 0
+      ? getImageUrl(property.media[0].mediaUrl)
+      : DEFAULT_IMAGE;
 
-console.log("IMAGE URL =", image);
-
-    return (
-        <div className="property-card">
-
-            <div
-                className="property-image"
-                onClick={() => navigate(`/property/${property.id}`)}
-            >
-
-                {image ? (
-                    <img
-                        src={image}
-                        alt={property.title}
-                    />
-                ) : (
-                    <div className="property-image-fallback">
-                        No Image
-                    </div>
-                )}
-
-                {showActions && (
-                    <div className="card-actions">
-
-                        <button
-                            className="edit-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/edit-property/${property.id}`);
-                            }}
-                        >
-                            <FaPen />
-                        </button>
-
-                        <button
-                            className="delete-btn"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onDelete(property.id);
-                            }}
-                        >
-                            <FaTrash />
-                        </button>
-
-                    </div>
-                )}
-
-            </div>
-
-            <div className="property-info">
-
-    <div className="title-row">
-
-        <h3>{property.title}</h3>
-
-        {showActions && (
-            <div className="action-icons">
-
-                <button
-                    className="edit-btn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/edit-property/${property.id}`);
-                    }}
-                >
-                    <FaPen />
-                </button>
-
-                <button
-                    className="delete-btn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(property.id);
-                    }}
-                >
-                    <FaTrash />
-                </button>
-
-            </div>
-        )}
-
-    </div>
-
-    <p className="location">
-        📍 {property.location}
-    </p>
-
-    <div className="price">
-        ₹ {property.price.toLocaleString()}
-    </div>
-
-    <p className="bedrooms">
-        🛏 {property.bedrooms} Bedrooms
-    </p>
-
-</div>
-
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="property-card-wrapper"
+      onClick={handleCardClick}
+    >
+      <div className="card-image-box">
+        <img src={imageSrc} alt={property.title} loading="lazy" />
+        <div className="card-badges-overlay">
+          <PropertyTypeBadge type={property.propertyType} />
+          <StatusBadge status={property.status} />
         </div>
-    );
-}
+      </div>
+
+      <div className="card-content">
+        <div className="card-title-row">
+          <h3 className="card-title">{property.title}</h3>
+
+          {showActions && (
+            <div className="card-action-btns" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="circle-action-btn edit"
+                title="Edit Property"
+                onClick={() => navigate(`/edit-property/${property.id}`)}
+              >
+                <FaPen />
+              </button>
+              <button
+                className="circle-action-btn delete"
+                title="Delete Property"
+                onClick={() => onDelete && onDelete(property)}
+              >
+                <FaTrashAlt />
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="card-location">
+          <FaMapMarkerAlt color="#2563eb" size={13} />
+          <span>{property.location || "Prime Location"}</span>
+        </div>
+
+        <div className="card-price">
+          ₹ {property.price ? Number(property.price).toLocaleString("en-IN") : "0"}
+        </div>
+
+        <div className="card-footer-specs">
+          <div className="spec-item">
+            <FaBed color="#64748b" />
+            <span>{property.bedrooms || 0} Beds</span>
+          </div>
+          <div className="spec-item">
+            <FaBath color="#64748b" />
+            <span>{Math.max(1, Math.round((property.bedrooms || 1) * 0.75))} Baths</span>
+          </div>
+          <div className="spec-item">
+            <FaRulerCombined color="#64748b" />
+            <span>{(property.bedrooms || 2) * 450} sqft</span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
 
 export default PropertyCard;
